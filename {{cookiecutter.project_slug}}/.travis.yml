@@ -1,0 +1,38 @@
+jobs:
+  include:
+  - stage: Test and lint
+    language: node_js
+    node_js: 8.5.0
+    install: yarn
+    script: npm run test:lint && npm run test:unit
+  - stage: Deploy Android
+    language: android
+    jdk: oraclejdk8
+    android:
+      components:
+        - tools
+        - platform-tools
+        - android-26
+        - extra-google-m2repository
+        - extra-google-google_play_services
+    before_install:
+      - nvm install 8.5.0
+      - gem install bundler
+      - bundle install
+    install: yarn
+    script: npm run deployment:android
+  - stage: Deploy iOS
+    language: node_js
+    node_js: 8.5.0
+    os: osx
+    osx_image: xcode9.2
+    before_install: bundle install
+    install: yarn
+    script: npm run deployment:ios
+
+after_success:
+ - coveralls
+
+notifications:
+  webhooks:
+    - %HOST_ADDRESS%/api/v1/challenge/check_builds/
